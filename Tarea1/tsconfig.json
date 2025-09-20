@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+      "baseUrl": ".",
+      "outDir": "dist",
+      "target": "es6",
+      "module": "nodenext",
+      "esModuleInterop": true,
+      "paths": {
+        "*": [
+          "node_modules/*"
+        ]
+      }
+    }
+  }
