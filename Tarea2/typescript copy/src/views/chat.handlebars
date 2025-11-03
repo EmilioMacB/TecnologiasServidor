@@ -1,0 +1,37 @@
+<h2>ChatGPI</h2>
+
+
+<div id="mensajes">
+</div>
+<input type="text" id="mensaje">
+<button id="boton">Enviar</button>
+
+
+<script>
+    console.log('cargo la pagina de chat...')
+    const socket = io('/');
+
+    socket.on('confirmacion', (datos) => {
+        console.log('Excelente!')
+    });
+
+
+    const inputMensaje = document.getElementById('mensaje');
+    const contenedor = document.getElementById('mensajes');
+    document.getElementById('boton').addEventListener('click', () => {
+        const mensaje = inputMensaje.value;
+        socket.emit('messageSent', {
+             mensaje
+         });
+    });
+
+     
+    socket.on('messageReceived', (datos) => {
+        const newP = document.createElement('p');
+        newP.innerHTML = `<span>${datos.mensaje}</span>`
+        contenedor.append(newP);
+
+    })
+
+    
+</script>
