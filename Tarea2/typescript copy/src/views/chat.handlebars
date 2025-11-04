@@ -1,37 +1,381 @@
-<h2>ChatGPI</h2>
+<style>
+  .app {
+    max-width: 900px;
+    width: 100%;
+    background: rgba(255,255,255,0.92);
+    border-radius: 1rem;
+    box-shadow: 0 8px 32px rgba(187, 188, 210, 0.2);
+    padding: 1rem 1.5rem 1.25rem;
+  }
+  .hidden { display: none; }
 
+  .section-title {
+    margin: 0.25rem 0 1rem;
+  }
 
-<div id="mensajes">
+  /* Name section */
+  .name-form {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .name-form input {
+    flex: 1;
+    padding: 0.6rem 0.8rem;
+    border-radius: 8px;
+    border: 1px solid #ccd;
+    font-size: 1rem;
+  }
+  .name-form button {
+    padding: 0.6rem 0.9rem;
+    border-radius: 8px;
+    border: 0;
+    background: #519574;
+    color: white;
+    cursor: pointer;
+  }
+
+  /* Rooms */
+  .rooms-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .rooms {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.75rem;
+    margin: 1rem 0;
+    padding: 0;
+    list-style: none;
+  }
+  .room-btn {
+    width: 100%;
+    text-align: left;
+    padding: 0.8rem 0.9rem;
+    border: 1px solid rgb(10, 10, 9);
+    border-radius: 10px;
+    background: rgb(236, 234, 234);
+    cursor: pointer;
+  }
+  .logout {
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #f1caca;
+    color: #b42318;
+    background: #ffefef;
+    cursor: pointer;
+  }
+
+  /* Chat */
+  .chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+  .chat-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .btn {
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #ccd;
+    background: white;
+    cursor: pointer;
+  }
+  .btn.primary {
+    background: #4f46e5;
+    color: white;
+    border-color: #4f46e5;
+  }
+
+  .messages {
+    height: 50vh;
+    overflow-y: auto;
+    border: 1px solid #000000;
+    border-radius: 10px;
+    padding: 0.75rem;
+    background: #c3ffdf;
+  }
+  .msg {
+    display: inline-block;
+    max-width: 80%;
+    padding: 0.5rem 0.7rem;
+    margin: 0.25rem 0;
+    border-radius: 12px;
+    line-height: 1.25rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .row { display: flex; }
+  .row.mine { justify-content: flex-end; }
+  .row.other { justify-content: flex-start; }
+  .row.system { justify-content: center; }
+
+  .msg.mine {
+    background: #7ebded;
+    border: 1px solid #c7e6b3;
+  }
+  .msg.other {
+    background: white;
+    border: 1px solid #a6a7a9;
+  }
+  .msg.system {
+    background: #eef2ff;
+    color: #3730a3;
+    font-style: italic;
+    border: 1px dashed #c7d2fe;
+  }
+  .meta {
+    display: block;
+    font-size: 0.78rem;
+    color: #6b7280;
+    margin-top: 0.2rem;
+  }
+
+  .composer {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+  }
+  .composer input {
+    flex: 1;
+    padding: 0.6rem 0.8rem;
+    border-radius: 10px;
+    border: 1px solid #ccd;
+    font-size: 1rem;
+  }
+</style>
+
+<div class="app" id="app">
+  <!-- Nombre -->
+  <section id="nameSection">
+    <h2 class="section-title">Escribe tu nombre de usuario:</h2>
+    <div class="name-form">
+      <input id="nameInput" type="text" placeholder="Tu nombre aqui..." />
+      <button id="enterBtn">Entrar</button>
+    </div>
+  </section>
+
+  <!-- Salas -->
+  <section id="roomsSection" class="hidden">
+    <div class="rooms-header">
+      <h2 class="section-title">Elige una sala</h2>
+      <button id="logoutBtn" class="logout">Cerrar sesión</button>
+    </div>
+    <ul id="roomsList" class="rooms">
+      {{#each rooms}}
+        <li><button class="room-btn" data-room-id="{{id}}" data-room-name="{{name}}"># {{name}}</button></li>
+      {{/each}}
+    </ul>
+  </section>
+
+  <!-- Chat -->
+  <section id="chatSection" class="hidden">
+    <div class="chat-header">
+      <h2 class="section-title">Sala: <span id="roomTitle"></span></h2>
+      <div class="chat-actions">
+        <button id="leaveRoomBtn" class="btn">Salir de la sala</button>
+        <button id="logoutBtn2" class="btn">Cerrar sesión</button>
+      </div>
+    </div>
+    <div id="messages" class="messages"></div>
+    <div class="composer">
+      <input id="messageInput" type="text" placeholder="Escribe un mensaje..." />
+      <button id="sendBtn" class="btn primary">Enviar</button>
+    </div>
+  </section>
 </div>
-<input type="text" id="mensaje">
-<button id="boton">Enviar</button>
-
 
 <script>
-    console.log('cargo la pagina de chat...')
-    const socket = io('/');
+  // Cliente Socket.IO
+  const socket = io('/');
 
-    socket.on('confirmacion', (datos) => {
-        console.log('Excelente!')
-    });
+  const $ = (id) => document.getElementById(id);
+  const nameSection = $('nameSection');
+  const roomsSection = $('roomsSection');
+  const chatSection = $('chatSection');
+  const nameInput = $('nameInput');
+  const enterBtn = $('enterBtn');
+  const roomsList = $('roomsList');
+  const messages = $('messages');
+  const messageInput = $('messageInput');
+  const sendBtn = $('sendBtn');
+  const roomTitle = $('roomTitle');
+  const leaveRoomBtn = $('leaveRoomBtn');
+  const logoutBtn = $('logoutBtn');
+  const logoutBtn2 = $('logoutBtn2');
 
+  const state = {
+    name: sessionStorage.getItem('chat:name') || null,
+    roomId: null,
+    roomName: null
+  };
 
-    const inputMensaje = document.getElementById('mensaje');
-    const contenedor = document.getElementById('mensajes');
-    document.getElementById('boton').addEventListener('click', () => {
-        const mensaje = inputMensaje.value;
-        socket.emit('messageSent', {
-             mensaje
-         });
-    });
+  function show(section) {
+    nameSection.classList.add('hidden');
+    roomsSection.classList.add('hidden');
+    chatSection.classList.add('hidden');
+    section.classList.remove('hidden');
+  }
 
-     
-    socket.on('messageReceived', (datos) => {
-        const newP = document.createElement('p');
-        newP.innerHTML = `<span>${datos.mensaje}</span>`
-        contenedor.append(newP);
+  function formatTime(iso) {
+    try {
+      const d = new Date(iso);
+      return d.toLocaleString();
+    } catch {
+      return new Date().toLocaleString();
+    }
+  }
 
-    })
+  function appendSystem(text, timestamp) {
+    const row = document.createElement('div');
+    row.className = 'row system';
+    const msg = document.createElement('div');
+    msg.className = 'msg system';
+    msg.innerText = text + (timestamp ? '\\n' : '');
+    if (timestamp) {
+      const meta = document.createElement('span');
+      meta.className = 'meta';
+      meta.innerText = formatTime(timestamp);
+      msg.appendChild(meta);
+    }
+    row.appendChild(msg);
+    messages.appendChild(row);
+    messages.scrollTop = messages.scrollHeight;
+  }
 
-    
+  function appendMessage({ name, message, timestamp, senderId }) {
+    const mine = senderId === socket.id;
+
+    const row = document.createElement('div');
+    row.className = 'row ' + (mine ? 'mine' : 'other');
+
+    const bubble = document.createElement('div');
+    bubble.className = 'msg ' + (mine ? 'mine' : 'other');
+    bubble.innerText = message;
+
+    const meta = document.createElement('span');
+    meta.className = 'meta';
+    meta.innerText = (mine ? 'Yo' : name) + ' • ' + formatTime(timestamp);
+
+    bubble.appendChild(meta);
+    row.appendChild(bubble);
+    messages.appendChild(row);
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  function clearMessages() {
+    messages.innerHTML = '';
+  }
+
+  function ensureName() {
+    if (!state.name) {
+      show(nameSection);
+    } else {
+      show(roomsSection);
+    }
+  }
+
+  // Inicial
+  ensureName();
+
+  // Entrar con nombre
+  enterBtn.addEventListener('click', () => {
+    const name = (nameInput.value || '').trim();
+    if (!name) {
+      alert('Debes ingresar un nombre para continuar.');
+      nameInput.focus();
+      return;
+    }
+    state.name = name;
+    sessionStorage.setItem('chat:name', name);
+    show(roomsSection);
+  });
+
+  // Selección de sala
+  roomsList.addEventListener('click', (e) => {
+    const btn = e.target.closest('.room-btn');
+    if (!btn) return;
+    const roomId = btn.dataset.roomId;
+    const roomName = btn.dataset.roomName;
+
+    // Si ya estaba en una sala, salir primero
+    if (state.roomId) {
+      socket.emit('leaveRoom');
+    }
+    state.roomId = roomId;
+    state.roomName = roomName;
+    roomTitle.textContent = roomName;
+    clearMessages();
+    socket.emit('joinRoom', { roomId, name: state.name });
+  });
+
+  socket.on('roomJoined', ({ roomId }) => {
+    if (roomId === state.roomId) {
+      show(chatSection);
+      appendSystem('Te uniste a #' + state.roomName);
+    }
+  });
+
+  socket.on('roomLeft', () => {
+    state.roomId = null;
+    state.roomName = null;
+    clearMessages();
+    show(roomsSection);
+  });
+
+  // Mensajes del sistema (join/leave)
+  socket.on('systemMessage', ({ type, name, timestamp }) => {
+    if (type === 'join') {
+      appendSystem(name + ' se unio a la sala', timestamp);
+    } else if (type === 'leave') {
+      appendSystem(name + ' se fue de la sala', timestamp);
+    }
+  });
+
+  // Mensaje recibido
+  socket.on('messageReceived', (payload) => {
+    appendMessage(payload);
+  });
+
+  // Enviar mensaje
+  function sendCurrent() {
+    const text = (messageInput.value || '').trim();
+    if (!text || !state.roomId) return;
+    socket.emit('sendMessage', { message: text });
+    messageInput.value = '';
+    messageInput.focus();
+  }
+  sendBtn.addEventListener('click', sendCurrent);
+  messageInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') sendCurrent();
+  });
+
+  // Salir de la sala
+  leaveRoomBtn.addEventListener('click', () => {
+    if (state.roomId) {
+      socket.emit('leaveRoom');
+    }
+  });
+
+  // Cerrar sesión
+  function doLogout() {
+    socket.emit('logout');
+    sessionStorage.removeItem('chat:name');
+  }
+  logoutBtn.addEventListener('click', doLogout);
+  logoutBtn2.addEventListener('click', doLogout);
+
+  socket.on('loggedOut', () => {
+    state.name = null;
+    state.roomId = null;
+    state.roomName = null;
+    clearMessages();
+    show(nameSection);
+  });
 </script>

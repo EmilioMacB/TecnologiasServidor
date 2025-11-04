@@ -1,5 +1,5 @@
 body {
-    background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%);
+    background: rgb(239, 239, 239);
     min-height: 100vh;
     margin: 0;
     display: flex;
@@ -11,8 +11,8 @@ h1 {
     background: rgba(255,255,255,0.85);
     padding: 2rem 3rem;
     border-radius: 1rem;
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
-    color: #333;
+    box-shadow: 0 8px 32px 0 rgba(232, 232, 232, 0.2);
+    color: #ffffff;
     font-size: 2.5rem;
     letter-spacing: 2px;
     text-align: center;
