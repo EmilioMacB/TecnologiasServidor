@@ -1,0 +1,30 @@
+{
+  "name": "tarea4",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-handlebars": "^8.0.1",
+    "nodemailer": "^7.0.11"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.5",
+    "@types/express-handlebars": "^5.3.1",
+    "@types/node": "^24.10.1",
+    "@types/nodemailer": "^7.0.4",
+    "nodemon": "^3.1.11",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,0 +1,22 @@
+<h1 style="color: #d42426;">Escribe tu carta a Santa 🎅</h1>
+
+<form action="/enviar-carta" method="POST">
+    <div style="margin-bottom: 15px;">
+        <label for="email" style="display: block; margin-bottom: 5px; font-weight: bold;">Correo de Santa:</label>
+        <input type="email" name="email" id="email" required 
+               placeholder="ejemplo@iteso.mx" 
+               style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+    </div>
+    
+    <div style="margin-bottom: 15px;">
+        <label for="carta" style="display: block; margin-bottom: 5px; font-weight: bold;">Tu Carta:</label>
+        <textarea name="carta" id="carta" rows="6" required 
+                  placeholder="Querido Santa, este año me porté..." 
+                  style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;"></textarea>
+    </div>
+
+    <button type="submit" 
+            style="background: #d42426; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
+        Enviar Carta
+    </button>
+</form>
